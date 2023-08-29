@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>discord webhook tester</title>
+    <script src="./webhook.js"></script>
+    <script>
+      let webhook_url = localStorage.getItem("webhook");
+      window.onload = () => {
+        document.getElementById("webhook_save_button").onclick = () => {
+          webhook_url = document.getElementById("webhook_input").value;
+          localStorage.setItem("webhook", webhook_url);
+          alert("saved");
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <p>Set webhook URL:</p>
+    <input type="text" id="webhook_input">
+    <button id="webhook_save_button">Save</button>
+  </body>
+</html>
