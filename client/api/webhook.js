@@ -1,3 +1,6 @@
+//low level discord webhook api wrapper
+
+
 //execute a webhook and get back the message data
 export async function execute_webhook(webhook_url, content, attachments={}) {
   webhook_url += "?wait=true";
