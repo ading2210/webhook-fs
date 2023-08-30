@@ -1,4 +1,4 @@
-async function execute_webhook(webhook_url, content, attachments={}) {
+export async function execute_webhook(webhook_url, content, attachments={}) {
   webhook_url += "?wait=true";
   let payload = {
     "content": content
