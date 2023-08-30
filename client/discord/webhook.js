@@ -1,3 +1,5 @@
+import * as client from "../index.js";
+
 //low level discord webhook api wrapper
 
 
@@ -11,7 +13,7 @@ export async function execute_webhook(webhook_url, content, attachments={}) {
   //use multipart form data for attachments
   let form_data = new FormData();
   let file_num = 0;
-  for (let [filename, attachment] of Object.entries(attachments)) {
+  for (let [filename, attachment] of attachments) {
     form_data.append(`files[${file_num}]`, attachment, filename);
     file_num++;
   }
@@ -49,7 +51,7 @@ export async function update_message(webhook_url, message_id, content, attachmen
   let attachments_list = [];
   let file_num = 0;
   let form_data = new FormData();
-  for (let [filename, attachment] of Object.entries(attachments)) {
+  for (let [filename, attachment] of attachments) {
     attachments_list.push({
       id: file_num,
       filename: filename
@@ -69,4 +71,14 @@ export async function update_message(webhook_url, message_id, content, attachmen
     method: "PATCH",
     body: form_data
   });
+}
+
+export async function info(webhook_url) {
+  let r = await fetch(webhook_url);
+  return await r.json();
+}
+
+export async function set_webhook(webhook_url) {
+  client.config.webhook_url = webhook_url;
+  client.config.webhook = await info(webhook_url);
 }
