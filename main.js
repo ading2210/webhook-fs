@@ -1,4 +1,4 @@
-import * as client from "/client/client.js";
+import * as client from "/client/index.js";
 
 client.config.webhook_url = localStorage.getItem("webhook");
 window.onload = async () => {
@@ -9,6 +9,6 @@ window.onload = async () => {
   }
 
   let blob = new Blob(new Uint8Array([0, 1, 2]));
-  let file = await client.File.create("test.txt", blob, {});
+  let file = await client.fs.file.create("test.txt", blob, {});
   console.log(file);
 }
