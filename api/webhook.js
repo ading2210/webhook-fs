@@ -1,3 +1,4 @@
+//execute a webhook and get back the message data
 export async function execute_webhook(webhook_url, content, attachments={}) {
   webhook_url += "?wait=true";
   let payload = {
@@ -18,4 +19,20 @@ export async function execute_webhook(webhook_url, content, attachments={}) {
     body: form_data
   })
   return await r.json();
+}
+
+//get a webhook message from its message id
+export async function get_message(webhook_url, message_id) {
+  let endpoint_url = `${webhook_url}/messages/${message_id}`;
+  let r = await fetch(endpoint_url);
+  return await r.json();
+}
+
+//delete a webhook message
+export async function delete_message(webhook_url, message_id) {
+  let endpoint_url = `${webhook_url}/messages/${message_id}`;
+  let r = await fetch(endpoint_url, {
+    method: "DELETE"
+  });
+  return r.status === 204;
 }
