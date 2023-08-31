@@ -14,9 +14,20 @@ window.onload = async () => {
   }
   else return;
 
-  document.getElementById("save_file_button").onclick = async () => {
+  document.getElementById("create_file_button").onclick = async () => {
     let blob = new Blob(new Uint8Array([0, 1, 2]));
-    let file = await client.fs.file.create("test.txt", blob, {});
+    let file = await client.fs.file.create("test.txt", blob);
     console.log(file);
   }
+
+  document.getElementById("create_dir_button").onclick = async () => {
+    let dir = await client.fs.dir.create("test_folder");
+    console.log(dir);
+  }
+
+  let blob = new Blob(["test file"]);
+  let file = await client.fs.file.create("test2.txt", blob);
+  let dir = await client.fs.dir.create("test_folder_2");
+  dir.add(file)
+  console.log(dir);
 }

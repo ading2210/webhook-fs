@@ -2,9 +2,13 @@ import * as client from "../index.js";
 
 //low level discord webhook api wrapper
 
+function assert_webhook() {
+  client.utils.assert(client.config.webhook_url, "Webhook URL not set.");
+}
 
 //execute a webhook and get back the message data
-export async function execute_webhook(content, attachments={}) {
+export async function execute_webhook(content, attachments=[]) {
+  assert_webhook();
   let webhook_url = client.config.webhook_url + "?wait=true";
   let payload = {
     content: content
@@ -28,6 +32,7 @@ export async function execute_webhook(content, attachments={}) {
 
 //get a webhook message from its message id
 export async function get_message(message_id) {
+  assert_webhook();
   let endpoint_url = `${client.config.webhook_url}/messages/${message_id}`;
   let r = await fetch(endpoint_url);
   return await r.json();
@@ -35,6 +40,7 @@ export async function get_message(message_id) {
 
 //delete a webhook message
 export async function delete_message(message_id) {
+  assert_webhook();
   let endpoint_url = `${client.config.webhook_url}/messages/${message_id}`;
   let r = await fetch(endpoint_url, {
     method: "DELETE"
@@ -44,7 +50,8 @@ export async function delete_message(message_id) {
 
 //update a webhook message
 //note that the existing attachments will be cleared
-export async function update_message(message_id, content, attachments={}) {
+export async function update_message(message_id, content, attachments=[]) {
+  assert_webhook();
   let endpoint_url = `${client.config.webhook_url}/messages/${message_id}`;
 
   //process the new attachments
@@ -71,6 +78,7 @@ export async function update_message(message_id, content, attachments={}) {
     method: "PATCH",
     body: form_data
   });
+  return await r.json();
 }
 
 export async function info(webhook_url) {
