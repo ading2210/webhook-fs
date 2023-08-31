@@ -10,10 +10,13 @@ window.onload = async () => {
 
   if (localStorage.getItem("webhook")) {
     await client.discord.webhook.set_webhook(localStorage.getItem("webhook"));
+    console.log(client.config.webhook);
   }
   else return;
 
-  let blob = new Blob(new Uint8Array([0, 1, 2]));
-  let file = await client.fs.file.create("test.txt", blob, {});
-  console.log(file);
+  document.getElementById("save_file_button").onclick = async () => {
+    let blob = new Blob(new Uint8Array([0, 1, 2]));
+    let file = await client.fs.file.create("test.txt", blob, {});
+    console.log(file);
+  }
 }
