@@ -3,12 +3,26 @@ import * as client from "/client/index.js";
 const from_id = id => document.getElementById(id);
 
 async function main() {
-  console.log("creating directory")
-  let blob = new Blob(["test file"]);
+  console.log("downloading sample file");
+  let r = await fetch("/samples/toucan.jpg");
+  let blob = await r.blob();
+
+  console.log("creating directory");
   let file = await client.fs.file.create("test2.txt", blob);
+
+  console.log("uploading file");
   let dir = await client.fs.dir.create("test_folder_2");
-  dir.add(file)
-  console.log("finished dir:", dir);
+  await dir.add(file);
+  console.log("finished dir", dir);
+
+  console.log("attempting file read");
+  let read_blob = await file.read();
+
+  console.log("file read finished, adding to dom");
+  let img = document.createElement("img");
+  img.src = URL.createObjectURL(read_blob);
+  img.style.width = "300px";
+  document.body.append(img);
 }
 
 window.onload = async () => {
