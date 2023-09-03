@@ -12,6 +12,7 @@ export class File {
     this.name = metadata.name;
     this.metadata = metadata;
     this.data = null;
+    this.exists = true;
   }
 
   async update() {
@@ -29,6 +30,7 @@ export class File {
 
   async read() {
     assert(this.metadata.chunks, "File contents not found.");
+    assert(this.exists, "File was deleted.");
     if (this.data) return this.data;
 
     let chunks = [];
@@ -54,6 +56,17 @@ export class File {
         attachment_id: chunk_message.attachments[0].id
       })
     }
+  }
+
+  async delete() {
+    for (let chunk of this.metadata.chunks) {
+      await webhook.delete_message(chunk.message_id);
+    }
+    await webhook.delete_message(this.metadata.message_id);
+    this.metadata = {};
+    this.attachment_id = null;
+    this.data = null;
+    this.exists = false;
   }
 }
 

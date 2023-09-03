@@ -10,6 +10,7 @@ export class Directory {
     this.attachment_id = attachment_id;
     this.metadata = metadata;
     this.items = {};
+    this.exists = true;
   }
 
   async update() {
@@ -51,10 +52,23 @@ export class Directory {
     this.metadata.items.push({
       name: item.name,
       attachment_id: item.attachment_id,
-      message_id: item.message_id,
+      message_id: item.metadata.message_id,
       type: item.metadata.type
     });
     await this.update();
+  }
+
+  async delete() {
+    for (let item_meta of this.metadata.items) {
+      let item = await this.get_item(item_meta.name);
+      await item.delete();
+    }
+    await webhook.delete_message(this.metadata.message_id);
+
+    this.metadata = {};
+    this.attachment_id = null;
+    this.items = null;
+    this.exists = false;
   }
 }
 
@@ -64,7 +78,7 @@ export async function create(name, metadata={}) {
   metadata.items = [];
   
   let dir = new Directory(metadata);
-  dir.update();
+  await dir.update();
   return dir
 }
 

@@ -8,10 +8,10 @@ async function main() {
   let r = await fetch("/samples/toucan.jpg");
   let blob = await r.blob();
 
-  console.log("creating directory");
+  console.log("uploading file");
   let file = await client.fs.file.create("test2.txt", blob);
 
-  console.log("uploading file");
+  console.log("creating directory");
   let dir = await client.fs.dir.create("test_folder_2");
   await dir.add(file);
   console.log("finished dir", dir);
@@ -24,6 +24,10 @@ async function main() {
   img.src = URL.createObjectURL(read_blob);
   img.style.width = "300px";
   document.body.append(img);
+
+  console.log("cleaning up");
+  await dir.delete();
+  console.log("done")
 }
 
 window.onload = async () => {
