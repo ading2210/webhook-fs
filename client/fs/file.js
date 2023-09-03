@@ -8,7 +8,6 @@ export const CHUNK_SIZE = 25_000_000; //chunk size is lower for testing
 
 export class File {
   constructor(metadata, attachment_id=null) {
-    this.message_id = null;
     this.attachment_id = attachment_id;
     this.name = metadata.name;
     this.metadata = metadata;
@@ -16,14 +15,15 @@ export class File {
   }
 
   async update() {
-    let metadata_blob = new Blob([JSON.stringify(this.metadata)]);
-    let attachments = [[METADATA_FILENAME, metadata_blob]];
-    if (this.message_id != null) {
-      await webhook.update_message(this.message_id, "metadata: "+this.name, attachments);
-      return;
+    if (this.metadata.message_id == null) {
+      let new_message = await webhook.execute_webhook("temp");
+      this.metadata.message_id = new_message.id;
     }
-    let message = await webhook.execute_webhook("metadata: "+this.name, attachments);
-    this.message_id = message.id;
+
+    let metadata_blob = new Blob([JSON.stringify(this.metadata)]);
+    let message = await webhook.update_message(this.metadata.message_id, "metadata: "+this.name, [
+      [METADATA_FILENAME, metadata_blob]
+    ]);
     this.attachment_id = message.attachments[0].id;
   }
 
@@ -36,7 +36,8 @@ export class File {
       let chunk_blob = await attachments.download(chunk.attachment_id, UPLOAD_FILENAME);
       chunks.push(chunk_blob);
     }
-    this.data = new Blob(chunks, {type: ""});
+    let mimetype = this.metadata.mimetype || "text/plain";
+    this.data = new Blob(chunks, {type: mimetype});
 
     return this.data
   }
@@ -59,6 +60,7 @@ export class File {
 export async function create(name, data, metadata={}) {
   metadata.type = TYPE;
   metadata.name = name;
+  metadata.mimetype = data.type;
 
   let file = new File(metadata);
   await file.write(data);

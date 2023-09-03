@@ -5,19 +5,24 @@ export const METADATA_FILENAME = "dir_metadata.bmp";
 export const TYPE = "dir";
 
 export class Directory {
-  constructor (attachment_id, metadata) {
+  constructor (metadata, attachment_id=null) {
     this.name = metadata.name;
-    this.message_id = metadata.message_id;
     this.attachment_id = attachment_id;
     this.metadata = metadata;
     this.items = {};
   }
 
   async update() {
+    if (this.metadata.message_id == null) {
+      let new_message = await webhook.execute_webhook("temp");
+      this.metadata.message_id = new_message.id;
+    }
+
     let metadata_blob = new Blob([JSON.stringify(this.metadata)]);
-    webhook.update_message(this.message_id, "dir: "+this.name, [
+    let updated_message = await webhook.update_message(this.metadata.message_id, "dir: "+this.name, [
       [METADATA_FILENAME, metadata_blob]
-    ])
+    ]);
+    this.attachment_id = updated_message.attachments[0].id;
   }
 
   async get_item(name) {
@@ -29,10 +34,10 @@ export class Directory {
       if (item_meta.name !== name) continue;
 
       let item;
-      if (item.type === fs.file.TYPE) {
-        item = fs.file.fetch(item_meta.attachment_id)
+      if (item_meta.type === fs.file.TYPE) {
+        item = fs.file.fetch(item_meta.attachment_id);
       }
-      else if (item.type === fs.dir.TYPE) {
+      else if (item_meta.type === fs.dir.TYPE) {
         item = fs.dir.fetch(item_meta.attachment_id);
       }
       this.items[name] = item;
@@ -45,30 +50,25 @@ export class Directory {
     this.items[item.name] = item;
     this.metadata.items.push({
       name: item.name,
-      attachment_id: item.attachment_id
+      attachment_id: item.attachment_id,
+      message_id: item.message_id,
+      type: item.metadata.type
     });
     await this.update();
   }
 }
 
 export async function create(name, metadata={}) {
-  let metadata_message = await webhook.execute_webhook("dir: "+name);
-
   metadata.type = TYPE;
   metadata.name = name;
   metadata.items = [];
-  metadata.message_id = metadata_message.id;
-
-  let metadata_blob = new Blob([JSON.stringify(metadata)]);
-  metadata_message = await webhook.update_message(metadata_message.id, "dir: "+name, [
-    [METADATA_FILENAME, metadata_blob]
-  ]);
   
-  let attachment_id = metadata_message.attachments[0].id;
-  return new Directory(attachment_id, metadata)
+  let dir = new Directory(metadata);
+  dir.update();
+  return dir
 }
 
 export async function fetch(attachment_id) {
   let metadata = await attachments.parse(attachment_id, METADATA_FILENAME);
-  return new Directory(attachment_id, metadata);
+  return new Directory(metadata, attachment_id);
 }

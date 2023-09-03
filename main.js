@@ -1,5 +1,6 @@
 import * as client from "/client/index.js";
 
+window.client = client; //easier testing
 const from_id = id => document.getElementById(id);
 
 async function main() {
