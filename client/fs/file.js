@@ -13,6 +13,7 @@ export class File {
     this.metadata = metadata;
     this.data = null;
     this.exists = true;
+    this.parent = null;
   }
 
   async update() {
@@ -26,6 +27,7 @@ export class File {
       [METADATA_FILENAME, metadata_blob]
     ]);
     this.attachment_id = message.attachments[0].id;
+    if (this.parent) this.parent.update();
   }
 
   async read() {

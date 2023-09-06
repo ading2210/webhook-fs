@@ -11,6 +11,7 @@ export class Directory {
     this.metadata = metadata;
     this.items = {};
     this.exists = true;
+    this.parent = null;
   }
 
   async update() {
@@ -24,6 +25,7 @@ export class Directory {
       [METADATA_FILENAME, metadata_blob]
     ]);
     this.attachment_id = updated_message.attachments[0].id;
+    if (this.parent) this.parent.update();
   }
 
   async get_item(name) {
@@ -41,6 +43,7 @@ export class Directory {
       else if (item_meta.type === fs.dir.TYPE) {
         item = fs.dir.fetch(item_meta.attachment_id);
       }
+      item.parent = this;
       this.items[name] = item;
       return item;
     }
@@ -55,6 +58,7 @@ export class Directory {
       message_id: item.metadata.message_id,
       type: item.metadata.type
     });
+    item.parent = this;
     await this.update();
   }
 

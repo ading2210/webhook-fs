@@ -11,10 +11,15 @@ async function main() {
   console.log("uploading file");
   let file = await client.fs.file.create("test2.txt", blob);
 
-  console.log("creating directory");
-  let dir = await client.fs.dir.create("test_folder_2");
-  await dir.add(file);
-  console.log("finished dir", dir);
+  console.log("creating dir1");
+  let dir1 = await client.fs.dir.create("test_folder_1");
+  console.log("finished dir1", dir1);
+
+  console.log("creating dir2");
+  let dir2 = await client.fs.dir.create("test_folder_2");
+  await dir1.add(dir2);
+  await dir2.add(file);
+  console.log("finished dir2", dir2);
 
   console.log("attempting file read");
   let read_blob = await file.read();
@@ -25,8 +30,9 @@ async function main() {
   img.style.width = "300px";
   document.body.append(img);
 
+  return;
   console.log("cleaning up");
-  await dir.delete();
+  await dir1.delete();
   console.log("done")
 }
 
@@ -50,8 +56,8 @@ window.onload = async () => {
   }
 
   from_id("create_dir_button").onclick = async () => {
-    let dir = await client.fs.dir.create("test_folder");
-    console.log(dir);
+    let dir1 = await client.fs.dir1.create("test_folder");
+    console.log(dir1);
   }
 
   from_id("main_button").onclick = main;
