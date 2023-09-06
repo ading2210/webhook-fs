@@ -25,7 +25,12 @@ export class Directory {
       [METADATA_FILENAME, metadata_blob]
     ]);
     this.attachment_id = updated_message.attachments[0].id;
-    if (this.parent) this.parent.update();
+    if (this.parent) await this.update_parent();
+  }
+
+  async update_parent() {
+    this.parent.metadata.items[this.name].attachment_id = this.attachment_id;
+    await this.parent.update();
   }
 
   async get_item(name) {
@@ -33,37 +38,35 @@ export class Directory {
       return this.items[name];
     }
 
-    for (let item_meta of this.metadata.items) {
-      if (item_meta.name !== name) continue;
-
-      let item;
-      if (item_meta.type === fs.file.TYPE) {
-        item = fs.file.fetch(item_meta.attachment_id);
-      }
-      else if (item_meta.type === fs.dir.TYPE) {
-        item = fs.dir.fetch(item_meta.attachment_id);
-      }
-      item.parent = this;
-      this.items[name] = item;
-      return item;
+    let item_meta = this.metadata.items[name];
+    if (!item_meta) return null;
+    
+    let item;
+    if (item_meta.type === fs.file.TYPE) {
+      item = fs.file.fetch(item_meta.attachment_id);
     }
-    return null;
+    else if (item_meta.type === fs.dir.TYPE) {
+      item = fs.dir.fetch(item_meta.attachment_id);
+    }
+    item.parent = this;
+    this.items[name] = item;
+    return item;
   }
 
   async add(item) {
     this.items[item.name] = item;
-    this.metadata.items.push({
+    this.metadata.items[item.name] = {
       name: item.name,
       attachment_id: item.attachment_id,
       message_id: item.metadata.message_id,
       type: item.metadata.type
-    });
+    };
     item.parent = this;
     await this.update();
   }
 
   async delete() {
-    for (let item_meta of this.metadata.items) {
+    for (let item_meta of Object.values(this.metadata.items)) {
       let item = await this.get_item(item_meta.name);
       await item.delete();
     }
@@ -79,7 +82,7 @@ export class Directory {
 export async function create(name, metadata={}) {
   metadata.type = TYPE;
   metadata.name = name;
-  metadata.items = [];
+  metadata.items = {};
   
   let dir = new Directory(metadata);
   await dir.update();

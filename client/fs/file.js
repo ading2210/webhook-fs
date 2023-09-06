@@ -27,7 +27,12 @@ export class File {
       [METADATA_FILENAME, metadata_blob]
     ]);
     this.attachment_id = message.attachments[0].id;
-    if (this.parent) this.parent.update();
+    if (this.parent) await this.update_parent();
+  }
+
+  async update_parent() {
+    this.parent.metadata.items[this.name].attachment_id = this.attachment_id;
+    await this.parent.update();
   }
 
   async read() {
